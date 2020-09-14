@@ -1,0 +1,10 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "poopr-realtime"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-ejgyf3dk7lmy"
+s3_prefix = "poopr-realtime"
+region = "us-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
