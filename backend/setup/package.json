@@ -1,0 +1,19 @@
+{
+  "name": "dynamodb-geo-setup",
+  "version": "1.0.0",
+  "description": "Poopr - if you are Looking for Potty, find relief.",
+  "main": "setup.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "poopr",
+    "potty"
+  ],
+  "author": "Deyanira Taupier",
+  "license": "GPL-2.0",
+  "dependencies": {
+    "aws-sdk": "^2.672.0",
+    "dynamodb-geo": "^0.4.0"
+  }
+}

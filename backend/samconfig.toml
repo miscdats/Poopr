@@ -2,9 +2,11 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "poopr-realtime"
+stack_name = "poopr-backend"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-ejgyf3dk7lmy"
-s3_prefix = "poopr-realtime"
+s3_prefix = "poopr-backend"
 region = "us-west-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
+parameter_overrides = "SeeksTableName=\"pooprSeeks\" SeeksTableStreamARN=\"arn:aws:dynamodb:us-west-2:904228707119:table/pooprSeeks/stream/2020-09-23T12:35:20.471\" AnswersTableName=\"pooprAnswers\" IoTDataEndpoint=\"ai4m81gweyn4a-ats.iot.us-west-2.amazonaws.com\" Auth0issuer=\"https://dev-r5kpc3rh.auth0.com/\""
+

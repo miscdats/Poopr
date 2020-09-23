@@ -1,0 +1,349 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Poopr - if you are Looking For Potty, find relief.
+
+Parameters:
+  SeeksTableName:
+    Type: String
+    Description: Name of Seeks DynamoDB table
+    Default: pooprSeeks
+
+  SeeksTableStreamARN:
+    Type: String
+    Description: Stream ARN for Seeks DynamoDB table
+    Default: arn:aws:dynamodb:us-west-2:904228707119:table/pooprSeeks/stream/2020-09-23T12:35:20.471
+
+  AnswersTableName:
+    Type: String
+    Description: Name of Answers DynamoDB table
+    Default: pooprAnswers
+
+  IoTDataEndpoint:
+    Type: String
+    Description: The IoT data endpoint for the application.
+    Default: ai4m81gweyn4a-ats.iot.us-west-2.amazonaws.com
+
+  Auth0issuer:
+    Type: String
+    Description: The issuer URL from your Auth0 account.
+    Default: https://dev-r5kpc3rh.auth0.com/
+
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: nodejs12.x
+    Tags:
+      Application: PooprLFP
+
+Resources:
+  # HTTP API
+  MyApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      # HTTP API authorizer - see https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-httpapi-httpapiauth.html
+      Auth:
+        Authorizers:
+          MyAuthorizer:
+            JwtConfiguration:
+              issuer: !Ref Auth0issuer
+              audience:
+                - https://auth0-jwt-authorizer
+            IdentitySource: "$request.header.Authorization"
+        DefaultAuthorizer: MyAuthorizer
+
+      # CORS configuration - this is open for development only and should be restricted in prod.
+      # See https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-httpapi-httpapicorsconfiguration.html   
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - "*"   
+        AllowOrigins: 
+          - "*"   
+
+  # Functions handling user answers
+  GetAnswersFunction: 
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: answers/      
+      Handler: get.handler
+      MemorySize: 128
+      Description: Get all answers for a seek
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref AnswersTableName     
+      Environment:
+        Variables:
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+          TableName: !Ref AnswersTableName  
+      Events:
+        Get:
+          Type: HttpApi
+          Properties:
+            Path: /answers/{Key}
+            Method: get
+            ApiId: !Ref MyApi     
+
+  PostAnswersFunction: 
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: answers/      
+      Handler: post.handler
+      MemorySize: 128
+      Description: Post new seek to an SQS queue
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt StarAnswersQueue.QueueName    
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt GeoAnswersQueue.QueueName               
+      Environment:
+        Variables:
+          StarQueueURL: !Ref StarAnswersQueue          
+          GeoQueueURL: !Ref GeoAnswersQueue      
+      Events:
+        Post:
+          Type: HttpApi
+          Properties:
+            Path: /answers
+            Method: post
+            ApiId: !Ref MyApi        
+
+  DeleteAnswersFunction: 
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: answers/      
+      Handler: delete.handler
+      MemorySize: 128
+      Description: Delete a single answer      
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AnswersTableName
+      Environment:
+        Variables:
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+          TableName: !Ref AnswersTableName
+      Events:
+        Delete:
+          Type: HttpApi
+          Properties:
+            Path: /answers
+            Method: delete
+            ApiId: !Ref MyApi  
+
+  ProcessAnswerStarFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: answers/processAnswerStar/
+      Handler: app.handler
+      MemorySize: 128
+      Description: Processes SQS queues for incoming star rating answers.      
+      Timeout: 10
+      ReservedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          TableName: !Ref AnswersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AnswersTableName
+      Events:
+        MySQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt StarAnswersQueue.Arn
+            BatchSize: 10            
+
+  ProcessAnswerGeoFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: answers/processAnswerGeo/
+      Handler: app.handler
+      MemorySize: 128
+      Description: Processes SQS queues for incoming geo answers.      
+      Timeout: 10
+      ReservedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          TableName: !Ref AnswersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AnswersTableName
+      Events:
+        MySQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt GeoAnswersQueue.Arn
+            BatchSize: 10   
+
+  ## Lambda functions processing DynamoDB streams
+  ProcessAnswersStreamFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: streams/processAnswers/
+      Handler: app.handler
+      MemorySize: 128
+      Description: Aggregates answers data from DDB stream  
+      Timeout: 10
+      ReservedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          TableName: !Ref SeeksTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SeeksTableName
+      Events:
+        Stream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt AnswersTable.StreamArn
+            BatchSize: 100
+            StartingPosition: TRIM_HORIZON
+
+  ProcessSeeksStreamFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: streams/processSeeks/
+      Handler: app.handler
+      MemorySize: 128
+      Description: Updates IoT topics with changes to Seeks DDB table        
+      ReservedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          IOT_DATA_ENDPOINT: !Ref IoTDataEndpoint
+      Policies:
+      - Statement:
+          - Effect: Allow
+            Resource: '*'
+            Action:
+              - iot:*
+      Events:
+        Stream:
+          Type: DynamoDB
+          Properties:
+            Stream: !Ref SeeksTableStreamARN
+            BatchSize: 100
+            StartingPosition: TRIM_HORIZON
+
+  # Functions handling user seeks
+  PostSeekFunction: 
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: seeks/post/            
+      Handler: app.handler
+      MemorySize: 128
+      Description: Post new seek to an SQS queue
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt SeeksQueue.QueueName             
+      Environment:
+        Variables:
+          QueueName: !Ref SeeksQueue   
+      Events:
+        PostSeek:
+          Type: HttpApi
+          Properties:
+            Path: /seeks
+            Method: post
+            ApiId: !Ref MyApi
+
+  GetSeeksFunction: 
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: seeks/get/            
+      Handler: app.handler
+      MemorySize: 2048
+      Description: Returns list of seeks from lat/lng query params
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SeeksTableName      
+      Environment:
+        Variables:
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+          TableName: !Ref SeeksTableName
+      Events:
+        GetSeeks:
+          Type: HttpApi
+          Properties:
+            Path: /seeks
+            Method: get
+            ApiId: !Ref MyApi
+
+  GetGeoSummaryFunction: 
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: seeks/getGeoSummary/            
+      Handler: app.handler
+      MemorySize: 128
+      Description: Returns list of geohashes and scores for single seek
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SeeksTableName      
+      Environment:
+        Variables:
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+          TableName: !Ref SeeksTableName
+      Events:
+        GetSeeks:
+          Type: HttpApi
+          Properties:
+            Path: /geoSeek
+            Method: get
+            ApiId: !Ref MyApi
+
+  ## Lambda functions
+  ProcessSeekFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: seeks/processSeek/
+      Handler: app.handler
+      MemorySize: 128
+      Timeout: 10
+      ReservedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          TableName: !Ref SeeksTableName      
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SeeksTableName 
+      Events:
+        MySQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SeeksQueue.Arn
+            BatchSize: 10
+
+  ## SQS queues
+  SeeksQueue:
+    Type: AWS::SQS::Queue
+
+  GeoAnswersQueue:
+    Type: AWS::SQS::Queue
+
+  StarAnswersQueue:
+    Type: AWS::SQS::Queue
+
+  ## DynamoDB table
+  AnswersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref AnswersTableName
+      AttributeDefinitions:
+      - AttributeName: PK
+        AttributeType: S
+      - AttributeName: SK
+        AttributeType: S
+      KeySchema:
+      - AttributeName: PK
+        KeyType: HASH
+      - AttributeName: SK
+        KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST    
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES       
+
+Outputs:
+  APIendpoint:
+    Description: "HTTP API endpoint URL"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com"
