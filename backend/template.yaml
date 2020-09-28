@@ -47,7 +47,7 @@ Resources:
             JwtConfiguration:
               issuer: !Ref Auth0issuer
               audience:
-                - https://auth0-jwt-authorizer
+                - https://auth0-jwt-authorizer/
             IdentitySource: "$request.header.Authorization"
         DefaultAuthorizer: MyAuthorizer
 
