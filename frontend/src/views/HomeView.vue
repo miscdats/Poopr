@@ -22,8 +22,8 @@
         </v-card-text>
     
         <v-card-actions>
-          <v-btn text color="orange" href="https://bit.ly/poopr"  target="_blank">
-            Learn more
+          <v-btn text color="orange" href="https://poopr.taupier.dev"  target="_blank">
+            Poopr
           </v-btn>
           <v-btn text color="orange" href="https://github.com/miscdats/poopr/"  target="_blank">
             GitHub

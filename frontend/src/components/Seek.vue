@@ -66,7 +66,7 @@
     <!-- Popup geo rating dialog for answering seek -->
     <v-dialog v-model="mapDialog" persistent>
       <v-card>
-        <v-card-title class="headline">Drop a pin on your answer:</v-card-title>
+        <v-card-title class="headline">Drop a pin on your toilet:</v-card-title>
         <v-card-text>
           <!-- <div class="my-1 subtitle-2">Your rating: </div> -->
           <GmapMap
