@@ -31,12 +31,12 @@ Vue.prototype.$appName = 'Poopr'
 Vue.prototype.$GoogleMapsKey = 'AIzaSyDroOWOPbDvOPIMhLHvX7MK6etbqr6C3Z8'
 
 // API Gateway endpoint - e.g. https://abc123abc.execute-api.us-east-1.amazonaws.com
-Vue.prototype.$APIurl = 'https://48yrk78uil.execute-api.us-west-2.amazonaws.com'
+Vue.prototype.$APIurl = 'https://utn51paib4.execute-api.us-west-2.amazonaws.com'
 
 // ** Websocket connection **
 
 //  PoolId: Retrieve this with the CLI command: aws cognito-identity list-identity-pools --max-results 10
-Vue.prototype.$poolId = 'us-west-2:5b3b653f-46d4-43b0-a466-79fccddf0618', // 'YourCognitoIdentityPoolId'
+Vue.prototype.$poolId = 'us-west-2:6cef1087-b1eb-450d-950d-23003ba4b211', // 'YourCognitoIdentityPoolId'
 
 //  IoTendpoint: Retrieve this with the CLI command: aws iot describe-endpoint --endpoint-type iot:Data-ATS
 Vue.prototype.$host = 'ai4m81gweyn4a-ats.iot.us-west-2.amazonaws.com', // 'YourAwsIoTEndpoint', e.g. 'prefix.iot.us-east-1.amazonaws.com'
