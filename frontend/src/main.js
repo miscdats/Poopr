@@ -12,7 +12,7 @@ import moment from 'moment'
 Vue.prototype.moment = moment
 
 // Import the Auth0 configuration
-import { domain, clientId, audience } from "../auth_config.json"
+import { domain, clientId, audience } from "./auth_config.json"
 
 // Import the plugin here
 import { Auth0Plugin } from "./auth"
