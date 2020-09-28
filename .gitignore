@@ -23,4 +23,3 @@ yarn-error.log*
 samconfig.toml
 .aws-sam
 localTestEvent.json
-auth-config.json
