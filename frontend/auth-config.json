@@ -1,4 +1,5 @@
 {
     "domain": "dev-r5kpc3rh.auth0.com",
-    "clientId": "cZW7ge4QJK0nmh14COWMDwy4euO5RxH6"
+    "clientId": "cZW7ge4QJK0nmh14COWMDwy4euO5RxH6",
+    "audience": "https://poopr.taupier.dev"
 }
