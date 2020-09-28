@@ -10,7 +10,7 @@
   "dependencies": {
     "@auth0/auth0-spa-js": "^1.12.1",
     "aws-iot-device-sdk": "^2.2.6",
-    "aws-sdk": "^2.758.0",
+    "aws-sdk": "^2.761.0",
     "axios": "^0.20.0",
     "core-js": "^3.6.5",
     "gmaps-heatmap": "^1.0.2",
@@ -18,7 +18,7 @@
     "ngeohash": "^0.6.3",
     "nodes2ts": "^2.0.0",
     "vue": "^2.6.12",
-    "vue-router": "^3.4.3",
+    "vue-router": "^3.4.5",
     "vue2-google-maps": "^0.10.7",
     "vuetify": "^2.3.10",
     "vuex": "^3.5.1"
@@ -29,7 +29,7 @@
     "@vue/cli-plugin-router": "^4.5.6",
     "@vue/cli-service": "~4.5.6",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.9.0",
+    "eslint": "^7.10.0",
     "eslint-plugin-vue": "^6.2.2",
     "sass": "^1.26.11",
     "sass-loader": "^10.0.2",
