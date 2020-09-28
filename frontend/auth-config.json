@@ -1,6 +1,5 @@
 {
     "domain": "dev-r5kpc3rh.auth0.com",
     "clientId": "cZW7ge4QJK0nmh14COWMDwy4euO5RxH6",
-    "issuer": "https://dev-r5kpc3rh.auth0.com",
     "audience": "https://auth0-jwt-authorizer"
 }

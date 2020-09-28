@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
-Description: Poopr - if you are Looking For Potty, find relief.
+Description: Poopr - Looking For Potty
 
 Parameters:
   SeeksTableName:
@@ -11,7 +11,7 @@ Parameters:
   SeeksTableStreamARN:
     Type: String
     Description: Stream ARN for Seeks DynamoDB table
-    Default: arn:aws:dynamodb:us-west-2:904228707119:table/pooprSeeks/stream/2020-09-23T12:35:20.471
+    Default: EnterYourStreamARN 
 
   AnswersTableName:
     Type: String
@@ -21,19 +21,19 @@ Parameters:
   IoTDataEndpoint:
     Type: String
     Description: The IoT data endpoint for the application.
-    Default: ai4m81gweyn4a-ats.iot.us-west-2.amazonaws.com
+    Default: YourIOTendpoint
 
   Auth0issuer:
     Type: String
     Description: The issuer URL from your Auth0 account.
-    Default: https://dev-r5kpc3rh.auth0.com/
+    Default: https://dev-r5kpc3rh.auth0.com
 
 Globals:
   Function:
     Timeout: 5
     Runtime: nodejs12.x
     Tags:
-      Application: PooprLFP
+      Application: Poopr
 
 Resources:
   # HTTP API
