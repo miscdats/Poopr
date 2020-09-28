@@ -47,7 +47,7 @@
         }
 
         var currentlySubscribedTopic = 'new-answer'
-        var clientId = 'askAroundMe-' + (Math.floor((Math.random() * 100000) + 1))
+        var clientId = 'poopr-' + (Math.floor((Math.random() * 100000) + 1))
         AWS.config.region = AWSConfiguration.region
 
         AWS.config.credentials = new AWS.CognitoIdentityCredentials({
